@@ -5,66 +5,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def _plot_loss_1d(x_grid, x_eval, y_eval, mu, std, ei, next_sample, yerr=0.0, true_y=None):
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8,8), sharex=True)
-
-    # Loss function plot
-    ax1.plot(x_grid, mu, label = "GP mean")
-    ax1.fill_between(x_grid, mu - std, mu + std, alpha=0.5)
-    ax1.errorbar(x_eval, y_eval, yerr, fmt='ok', zorder=3, label="Observed values")
-    ax1.set_ylabel("Function value f(x)")
-    ax1.set_xlabel("x")
-
-    if true_y is not None:
-        ax1.plot(x_grid, true_y, '--', label="True function")
-
-    # Acquisition function plot
-    ax2.plot(x_grid, ei, 'r', label="Expected improvement")
-    ax2.set_ylabel("Expected improvement (EI)")
-    ax2.set_title("Next sample point is C = %.3f" % next_sample)
-    ax2.axvline(next_sample)
-
-    return fig, ax1, ax2
-
-
-def _plot_loss_2d(first_param_grid, second_param_grid, sampled_params, sampled_loss, mu, ei, next_sample, optimum=None):
-
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8,8), sharex=True, sharey=True)
-
-    X, Y = np.meshgrid(first_param_grid, second_param_grid, indexing='ij')
-
-    # EI contour plot
-    cp = ax1.contourf(X, Y, ei.reshape(X.shape))
-    plt.colorbar(cp, ax=ax1)
-    ax1.set_title("Expected Improvement. Next sample will be (%.2f, %.2f)" % (next_sample[0], next_sample[1]))
-    ax1.autoscale(False)
-    ax1.axvline(next_sample[0], color='k')
-    ax1.axhline(next_sample[1], color='k')
-    ax1.scatter(next_sample[0], next_sample[1])
-    ax1.set_xlabel("C")
-    ax1.set_ylabel("gamma")
-
-    # Loss contour plot
-    cp2 = ax2.contourf(X, Y, mu.reshape(X.shape))
-    plt.colorbar(cp2, ax=ax2)
-    ax2.autoscale(False)
-    ax2.scatter(sampled_params[:, 0], sampled_params[:, 1], zorder=1)
-    ax2.axvline(next_sample[0], color='k')
-    ax2.axhline(next_sample[1], color='k')
-    ax2.scatter(next_sample[0], next_sample[1])
-    ax2.set_title("Mean estimate of loss surface for iteration %d" % (sampled_params.shape[0] - 3))
-    ax2.set_xlabel("C")
-    ax2.set_ylabel("gamma")
-
-    if optimum is not None:
-        ax2.scatter(optimum[0], optimum[1], marker='*', c='gold', s=150)
-
-    return fig, ax1, ax2
-
-
 def plot_iteration(first_param_grid, sampled_params, sampled_loss, first_iter=0, alpha=1e-5,
                    greater_is_better=True, true_y=None, second_param_grid=None,
-                   param_dims_to_plot=[0, 1], save_figures=True, optimum=None):
+                   param_dims_to_plot=[0, 1], filepath=None, optimum=None):
     """ plot_iteration
 
     Plots a line plot (1D) or heatmap (2D) of the estimated loss function and expected
@@ -125,5 +68,62 @@ def plot_iteration(first_param_grid, sampled_params, sampled_loss, first_iter=0,
 
             fig, ax1, ax2 = _plot_loss_2d(first_param_grid, second_param_grid, sampled_params[:(i+1), param_dims_to_plot], sampled_loss, mu, ei, sampled_params[i + 1, param_dims_to_plot], optimum)
 
-        if save_figures:
-            plt.savefig('/Users/thomashuijskens/Personal/gp-optimisation/figures/bo_iteration_%d.png' % i, bbox_inches='tight')
+        if file_path is not None:
+            plt.savefig('%s/bo_iteration_%d.png' % (filepath, i), bbox_inches='tight')
+
+
+def _plot_loss_1d(x_grid, x_eval, y_eval, mu, std, ei, next_sample, yerr=0.0, true_y=None):
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8,8), sharex=True)
+
+    # Loss function plot
+    ax1.plot(x_grid, mu, label = "GP mean")
+    ax1.fill_between(x_grid, mu - std, mu + std, alpha=0.5)
+    ax1.errorbar(x_eval, y_eval, yerr, fmt='ok', zorder=3, label="Observed values")
+    ax1.set_ylabel("Function value f(x)")
+    ax1.set_xlabel("x")
+
+    if true_y is not None:
+        ax1.plot(x_grid, true_y, '--', label="True function")
+
+    # Acquisition function plot
+    ax2.plot(x_grid, ei, 'r', label="Expected improvement")
+    ax2.set_ylabel("Expected improvement (EI)")
+    ax2.set_title("Next sample point is C = %.3f" % next_sample)
+    ax2.axvline(next_sample)
+
+    return fig, ax1, ax2
+
+
+def _plot_loss_2d(first_param_grid, second_param_grid, sampled_params, sampled_loss, mu, ei, next_sample, optimum=None):
+
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8,8), sharex=True, sharey=True)
+
+    X, Y = np.meshgrid(first_param_grid, second_param_grid, indexing='ij')
+
+    # EI contour plot
+    cp = ax1.contourf(X, Y, ei.reshape(X.shape))
+    plt.colorbar(cp, ax=ax1)
+    ax1.set_title("Expected Improvement. Next sample will be (%.2f, %.2f)" % (next_sample[0], next_sample[1]))
+    ax1.autoscale(False)
+    ax1.axvline(next_sample[0], color='k')
+    ax1.axhline(next_sample[1], color='k')
+    ax1.scatter(next_sample[0], next_sample[1])
+    ax1.set_xlabel("C")
+    ax1.set_ylabel("gamma")
+
+    # Loss contour plot
+    cp2 = ax2.contourf(X, Y, mu.reshape(X.shape))
+    plt.colorbar(cp2, ax=ax2)
+    ax2.autoscale(False)
+    ax2.scatter(sampled_params[:, 0], sampled_params[:, 1], zorder=1)
+    ax2.axvline(next_sample[0], color='k')
+    ax2.axhline(next_sample[1], color='k')
+    ax2.scatter(next_sample[0], next_sample[1])
+    ax2.set_title("Mean estimate of loss surface for iteration %d" % (sampled_params.shape[0]))
+    ax2.set_xlabel("C")
+    ax2.set_ylabel("gamma")
+
+    if optimum is not None:
+        ax2.scatter(optimum[0], optimum[1], marker='*', c='gold', s=150)
+
+    return fig, ax1, ax2

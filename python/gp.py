@@ -1,7 +1,6 @@
 """ gp.py
 
 Bayesian optimisation of loss functions.
-
 """
 
 import numpy as np
@@ -9,7 +8,6 @@ import sklearn.gaussian_process as gp
 
 from scipy.stats import norm
 from scipy.optimize import minimize
-from sklearn.model_selection import ParameterSampler
 
 def expected_improvement(x, gaussian_process, evaluated_loss, greater_is_better=False, n_params=1):
     """ expected_improvement
@@ -94,7 +92,6 @@ def sample_next_hyperparameter(acquisition_func, gaussian_process, evaluated_los
     return best_x
 
 
-
 def bayesian_optimisation(n_iters, sample_loss, bounds, x0=None, n_pre_samples=5,
                           gp_params=None, random_search=False, alpha=1e-5, epsilon=1e-7):
     """ bayesian_optimisation
@@ -159,8 +156,8 @@ def bayesian_optimisation(n_iters, sample_loss, bounds, x0=None, n_pre_samples=5
         # Sample next hyperparameter
         if random_search:
             x_random = np.random.uniform(bounds[:, 0], bounds[:, 1], size=(random_search, n_params))
-            ei = expected_improvement(x_random, model, yp, greater_is_better=True, n_params=n_params)
-            next_sample = x_random[np.argmin(ei)]
+            ei = -1 * expected_improvement(x_random, model, yp, greater_is_better=True, n_params=n_params)
+            next_sample = x_random[np.argmax(ei), :]
         else:
             next_sample = sample_next_hyperparameter(expected_improvement, model, yp, greater_is_better=True, bounds=bounds, n_restarts=100)
 
